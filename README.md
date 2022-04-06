@@ -11,7 +11,7 @@ docker run -p 9090:8080 vulfocus/spring-core-rce-2022-03-29
 python3 exploit.py --url http://localhost:9090
 ```
 
-![spring4shell](spring4shell.png)
+![image](https://user-images.githubusercontent.com/43322684/161942606-ddd335c9-8076-4dba-80ad-191a2c6f41b2.png)
 
 
 based on the POC found here : https://github.com/craig/SpringCore0day/blob/main/exp.py 
